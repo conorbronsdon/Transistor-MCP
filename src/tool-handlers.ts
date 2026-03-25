@@ -17,6 +17,31 @@ import {
 } from "./types.js";
 import axios from "axios";
 
+/**
+ * Strip heavy fields from episode responses to reduce token usage.
+ * Removes HTML descriptions, embed codes, and formatted variants
+ * that are rarely needed by the caller.
+ */
+function trimEpisodeResponse(data: any): any {
+  if (!data?.data) return data;
+
+  const strip = (attrs: any) => {
+    if (!attrs) return;
+    delete attrs.formatted_description;
+    delete attrs.formatted_summary;
+    delete attrs.embed_html;
+    delete attrs.embed_html_dark;
+    // Keep description and summary since callers may need them
+  };
+
+  if (Array.isArray(data.data)) {
+    for (const ep of data.data) strip(ep?.attributes);
+  } else {
+    strip(data.data?.attributes);
+  }
+  return data;
+}
+
 export class ToolHandlers {
   constructor(private apiClient: TransistorApiClient) {}
 
@@ -27,7 +52,7 @@ export class ToolHandlers {
         description: "Get details of the authenticated user account",
         inputSchema: {
           type: "object",
-          properties: {},  // No parameters needed
+          properties: {},
         },
       },
       {
@@ -55,12 +80,27 @@ export class ToolHandlers {
               description: "Page number for pagination",
               minimum: 1,
             },
+            per: {
+              type: "number",
+              description: "Items per page (default 10, max 100)",
+              minimum: 1,
+              maximum: 100,
+            },
+            private: {
+              type: "boolean",
+              description: "Filter for private shows",
+            },
+            query: {
+              type: "string",
+              description: "Search query to filter shows",
+            },
           },
         },
       },
       {
         name: "list_episodes",
-        description: "List episodes for a specific show. Use 'fields' to request only specific attributes and reduce response size (e.g. {\"episode\": [\"title\", \"number\", \"status\", \"season\"]})",
+        description:
+          "List episodes for a specific show. Use 'fields' to request only specific attributes and reduce response size (e.g. {\"episode\": [\"title\", \"number\", \"status\", \"season\"]}). Use 'query' to search by title.",
         inputSchema: {
           type: "object",
           properties: {
@@ -73,14 +113,31 @@ export class ToolHandlers {
               description: "Page number for pagination",
               minimum: 1,
             },
+            per: {
+              type: "number",
+              description: "Items per page (default 10, max 100)",
+              minimum: 1,
+              maximum: 100,
+            },
+            query: {
+              type: "string",
+              description: "Search episodes by title",
+            },
             status: {
               type: "string",
               enum: ["published", "draft", "scheduled"],
               description: "Filter episodes by status",
             },
+            order: {
+              type: "string",
+              enum: ["asc", "desc"],
+              description:
+                "Sort order: 'desc' (newest first, default) or 'asc' (oldest first)",
+            },
             fields: {
               type: "object",
-              description: "Sparse fieldsets to reduce response size. Keys are resource types (e.g. 'episode'), values are arrays of field names (e.g. ['title', 'number', 'status', 'season', 'transcript_url'])",
+              description:
+                "Sparse fieldsets to reduce response size. Keys are resource types (e.g. 'episode'), values are arrays of field names (e.g. ['title', 'number', 'status', 'season', 'transcript_url'])",
             },
           },
           required: ["show_id"],
@@ -100,6 +157,10 @@ export class ToolHandlers {
               type: "string",
               description: "Episode title",
             },
+            audio_url: {
+              type: "string",
+              description: "URL to the episode audio file",
+            },
             summary: {
               type: "string",
               description: "Episode summary",
@@ -108,22 +169,59 @@ export class ToolHandlers {
               type: "string",
               description: "Episode description (supports HTML)",
             },
-            status: {
+            transcript_text: {
               type: "string",
-              enum: ["published", "draft", "scheduled"],
-              description: "Episode status",
+              description: "Plain text transcript for the episode",
+            },
+            author: {
+              type: "string",
+              description: "Episode author name",
+            },
+            explicit: {
+              type: "boolean",
+              description: "Whether the episode contains explicit content",
+            },
+            image_url: {
+              type: "string",
+              description: "URL to episode artwork",
+            },
+            keywords: {
+              type: "string",
+              description: "Comma-separated list of keywords",
+            },
+            number: {
+              type: "number",
+              description: "Episode number",
             },
             season_number: {
               type: "number",
               description: "Season number",
             },
-            episode_number: {
-              type: "number",
-              description: "Episode number",
-            },
-            audio_url: {
+            type: {
               type: "string",
-              description: "URL to the episode audio file",
+              enum: ["full", "trailer", "bonus"],
+              description: "Episode type",
+            },
+            alternate_url: {
+              type: "string",
+              description: "Override the default share URL",
+            },
+            video_url: {
+              type: "string",
+              description: "YouTube or video URL",
+            },
+            email_notifications: {
+              type: "boolean",
+              description: "Override show email notification setting",
+            },
+            increment_number: {
+              type: "boolean",
+              description: "Auto-set next episode number",
+            },
+            status: {
+              type: "string",
+              enum: ["published", "draft", "scheduled"],
+              description: "Episode status",
             },
           },
           required: ["show_id", "title", "audio_url"],
@@ -151,10 +249,29 @@ export class ToolHandlers {
               type: "string",
               description: "New episode description (supports HTML)",
             },
-            status: {
+            transcript_text: {
               type: "string",
-              enum: ["published", "draft", "scheduled"],
-              description: "New episode status",
+              description: "Plain text transcript for the episode",
+            },
+            author: {
+              type: "string",
+              description: "Episode author name",
+            },
+            explicit: {
+              type: "boolean",
+              description: "Whether the episode contains explicit content",
+            },
+            image_url: {
+              type: "string",
+              description: "URL to episode artwork",
+            },
+            keywords: {
+              type: "string",
+              description: "Comma-separated list of keywords",
+            },
+            number: {
+              type: "number",
+              description: "Episode number",
             },
             season_number: {
               type: "number",
@@ -162,11 +279,29 @@ export class ToolHandlers {
             },
             episode_number: {
               type: "number",
-              description: "New episode number",
+              description: "New episode number (alias for number)",
             },
-            transcript_text: {
+            type: {
               type: "string",
-              description: "Plain text transcript for the episode",
+              enum: ["full", "trailer", "bonus"],
+              description: "Episode type",
+            },
+            alternate_url: {
+              type: "string",
+              description: "Override the default share URL",
+            },
+            video_url: {
+              type: "string",
+              description: "YouTube or video URL",
+            },
+            email_notifications: {
+              type: "boolean",
+              description: "Override show email notification setting",
+            },
+            status: {
+              type: "string",
+              enum: ["published", "draft", "scheduled"],
+              description: "New episode status",
             },
           },
           required: ["episode_id"],
@@ -174,7 +309,8 @@ export class ToolHandlers {
       },
       {
         name: "get_analytics",
-        description: "Get analytics for a show or episode",
+        description:
+          "Get analytics for a show or episode. Defaults to last 14 days if no dates provided.",
         inputSchema: {
           type: "object",
           properties: {
@@ -184,18 +320,19 @@ export class ToolHandlers {
             },
             episode_id: {
               type: "string",
-              description: "ID of the episode to get analytics for (optional)",
+              description:
+                "ID of the episode to get analytics for (optional)",
             },
             start_date: {
               type: "string",
-              description: "Start date in YYYY-MM-DD format",
+              description: "Start date in dd-mm-yyyy format (optional)",
             },
             end_date: {
               type: "string",
-              description: "End date in YYYY-MM-DD format",
+              description: "End date in dd-mm-yyyy format (optional)",
             },
           },
-          required: ["show_id", "start_date", "end_date"],
+          required: ["show_id"],
         },
       },
       {
@@ -225,7 +362,8 @@ export class ToolHandlers {
       },
       {
         name: "get_all_episode_analytics",
-        description: "Get analytics for all episodes of a show",
+        description:
+          "Get analytics for all episodes of a show. Defaults to last 7 days if no dates provided.",
         inputSchema: {
           type: "object",
           properties: {
@@ -235,14 +373,14 @@ export class ToolHandlers {
             },
             start_date: {
               type: "string",
-              description: "Start date in dd-mm-yyyy format",
+              description: "Start date in dd-mm-yyyy format (optional)",
             },
             end_date: {
               type: "string",
-              description: "End date in dd-mm-yyyy format",
+              description: "End date in dd-mm-yyyy format (optional)",
             },
           },
-          required: ["show_id", "start_date", "end_date"],
+          required: ["show_id"],
         },
       },
       {
@@ -348,8 +486,11 @@ export class ToolHandlers {
             );
           }
           const data = await this.apiClient.listEpisodes(args);
+          const trimmed = trimEpisodeResponse(data);
           return {
-            content: [{ type: "text", text: JSON.stringify(data, null, 2) }],
+            content: [
+              { type: "text", text: JSON.stringify(trimmed, null, 2) },
+            ],
           };
         }
 
@@ -361,8 +502,11 @@ export class ToolHandlers {
             );
           }
           const data = await this.apiClient.createEpisode(args);
+          const trimmed = trimEpisodeResponse(data);
           return {
-            content: [{ type: "text", text: JSON.stringify(data, null, 2) }],
+            content: [
+              { type: "text", text: JSON.stringify(trimmed, null, 2) },
+            ],
           };
         }
 
@@ -374,8 +518,11 @@ export class ToolHandlers {
             );
           }
           const data = await this.apiClient.updateEpisode(args);
+          const trimmed = trimEpisodeResponse(data);
           return {
-            content: [{ type: "text", text: JSON.stringify(data, null, 2) }],
+            content: [
+              { type: "text", text: JSON.stringify(trimmed, null, 2) },
+            ],
           };
         }
 

@@ -39,23 +39,27 @@ export class TransistorApiClient {
   }
 
   async listShows(args: ListShowsArgs) {
-    const { page = 1 } = args;
-    const response = await this.api.get("/v1/shows", {
-      params: { "pagination[page]": page, "pagination[per]": 10 },
-    });
+    const { page = 1, per = 10, query } = args;
+    const params: Record<string, string | number | boolean> = {
+      "pagination[page]": page,
+      "pagination[per]": per,
+    };
+    if (query) params.query = query;
+    if (args.private !== undefined) params.private = args.private;
+    const response = await this.api.get("/v1/shows", { params });
     return response.data;
   }
 
   async listEpisodes(args: ListEpisodesArgs) {
-    const { show_id, page = 1, status, fields } = args;
+    const { show_id, page = 1, per = 10, query, status, order, fields } = args;
     const params: Record<string, string | number | string[]> = {
       show_id,
       "pagination[page]": page,
-      "pagination[per]": 10,
+      "pagination[per]": per,
     };
-    if (status) {
-      params.status = status;
-    }
+    if (status) params.status = status;
+    if (query) params.query = query;
+    if (order) params.order = order;
     if (fields) {
       for (const [resource, fieldList] of Object.entries(fields)) {
         params[`fields[${resource}]`] = fieldList.join(",");
@@ -66,8 +70,9 @@ export class TransistorApiClient {
   }
 
   async createEpisode(args: CreateEpisodeArgs) {
+    const { show_id, ...episodeData } = args;
     const response = await this.api.post("/v1/episodes", {
-      episode: args,
+      episode: { show_id, ...episodeData },
     });
     return response.data;
   }
@@ -85,16 +90,20 @@ export class TransistorApiClient {
     const endpoint = episode_id
       ? `/v1/analytics/episodes/${episode_id}`
       : `/v1/analytics/${show_id}`;
-    const response = await this.api.get(endpoint, {
-      params: { start_date, end_date },
-    });
+    const params: Record<string, string> = {};
+    if (start_date) params.start_date = start_date;
+    if (end_date) params.end_date = end_date;
+    const response = await this.api.get(endpoint, { params });
     return response.data;
   }
 
   async getAllEpisodeAnalytics(args: GetAllEpisodeAnalyticsArgs) {
     const { show_id, start_date, end_date } = args;
+    const params: Record<string, string> = {};
+    if (start_date) params.start_date = start_date;
+    if (end_date) params.end_date = end_date;
     const response = await this.api.get(`/v1/analytics/${show_id}/episodes`, {
-      params: { start_date, end_date },
+      params,
     });
     return response.data;
   }
