@@ -47,10 +47,21 @@ export class TransistorApiClient {
   }
 
   async listEpisodes(args: ListEpisodesArgs) {
-    const { show_id, page = 1, status } = args;
-    const response = await this.api.get("/v1/episodes", {
-      params: { show_id, "pagination[page]": page, "pagination[per]": 10, status },
-    });
+    const { show_id, page = 1, status, fields } = args;
+    const params: Record<string, string | number | string[]> = {
+      show_id,
+      "pagination[page]": page,
+      "pagination[per]": 10,
+    };
+    if (status) {
+      params.status = status;
+    }
+    if (fields) {
+      for (const [resource, fieldList] of Object.entries(fields)) {
+        params[`fields[${resource}]`] = fieldList.join(",");
+      }
+    }
+    const response = await this.api.get("/v1/episodes", { params });
     return response.data;
   }
 

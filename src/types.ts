@@ -14,6 +14,7 @@ export interface ListEpisodesArgs {
   show_id: string;
   page?: number;
   status?: "published" | "draft" | "scheduled";
+  fields?: { [key: string]: string[] };
 }
 
 export interface CreateEpisodeArgs {
@@ -35,6 +36,7 @@ export interface UpdateEpisodeArgs {
   status?: "published" | "draft" | "scheduled";
   season_number?: number;
   episode_number?: number;
+  transcript_text?: string;
 }
 
 export interface GetAnalyticsArgs {
@@ -78,12 +80,13 @@ export function isListShowsArgs(args: unknown): args is ListShowsArgs {
 
 export function isListEpisodesArgs(args: unknown): args is ListEpisodesArgs {
   if (!args || typeof args !== "object") return false;
-  const { show_id, page, status } = args as ListEpisodesArgs;
+  const { show_id, page, status, fields } = args as ListEpisodesArgs;
   return (
     typeof show_id === "string" &&
     (page === undefined || typeof page === "number") &&
     (status === undefined ||
-      ["published", "draft", "scheduled"].includes(status))
+      ["published", "draft", "scheduled"].includes(status)) &&
+    (fields === undefined || typeof fields === "object")
   );
 }
 
@@ -122,6 +125,7 @@ export function isUpdateEpisodeArgs(args: unknown): args is UpdateEpisodeArgs {
     status,
     season_number,
     episode_number,
+    transcript_text,
   } = args as UpdateEpisodeArgs;
   return (
     typeof episode_id === "string" &&
@@ -131,7 +135,8 @@ export function isUpdateEpisodeArgs(args: unknown): args is UpdateEpisodeArgs {
     (status === undefined ||
       ["published", "draft", "scheduled"].includes(status)) &&
     (season_number === undefined || typeof season_number === "number") &&
-    (episode_number === undefined || typeof episode_number === "number")
+    (episode_number === undefined || typeof episode_number === "number") &&
+    (transcript_text === undefined || typeof transcript_text === "string")
   );
 }
 

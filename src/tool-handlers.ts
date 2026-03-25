@@ -60,7 +60,7 @@ export class ToolHandlers {
       },
       {
         name: "list_episodes",
-        description: "List episodes for a specific show",
+        description: "List episodes for a specific show. Use 'fields' to request only specific attributes and reduce response size (e.g. {\"episode\": [\"title\", \"number\", \"status\", \"season\"]})",
         inputSchema: {
           type: "object",
           properties: {
@@ -77,6 +77,10 @@ export class ToolHandlers {
               type: "string",
               enum: ["published", "draft", "scheduled"],
               description: "Filter episodes by status",
+            },
+            fields: {
+              type: "object",
+              description: "Sparse fieldsets to reduce response size. Keys are resource types (e.g. 'episode'), values are arrays of field names (e.g. ['title', 'number', 'status', 'season', 'transcript_url'])",
             },
           },
           required: ["show_id"],
@@ -159,6 +163,10 @@ export class ToolHandlers {
             episode_number: {
               type: "number",
               description: "New episode number",
+            },
+            transcript_text: {
+              type: "string",
+              description: "Plain text transcript for the episode",
             },
           },
           required: ["episode_id"],
