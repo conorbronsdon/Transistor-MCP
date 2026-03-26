@@ -110,6 +110,68 @@ export interface CompareEpisodesArgs {
   end_date?: string;
 }
 
+export interface PublishEpisodeArgs {
+  episode_id: string;
+  status: "published" | "scheduled" | "draft";
+  published_at?: string;
+}
+
+export interface GetShowArgs {
+  show_id: string;
+}
+
+export interface UpdateShowArgs {
+  show_id: string;
+  author?: string;
+  category?: string;
+  copyright?: string;
+  description?: string;
+  explicit?: boolean;
+  image_url?: string;
+  keywords?: string;
+  language?: string;
+  owner_email?: string;
+  secondary_category?: string;
+  show_type?: "episodic" | "serial";
+  title?: string;
+  time_zone?: string;
+  website?: string;
+}
+
+export interface ListSubscribersArgs {
+  show_id: string;
+  page?: number;
+  per?: number;
+  query?: string;
+}
+
+export interface GetSubscriberArgs {
+  subscriber_id: string;
+}
+
+export interface CreateSubscriberArgs {
+  show_id: string;
+  email: string;
+  skip_welcome_email?: boolean;
+}
+
+export interface CreateSubscribersBatchArgs {
+  show_id: string;
+  emails: string[];
+  skip_welcome_email?: boolean;
+}
+
+export interface UpdateSubscriberArgs {
+  subscriber_id: string;
+  email: string;
+}
+
+export interface DeleteSubscriberArgs {
+  subscriber_id?: string;
+  show_id?: string;
+  email?: string;
+}
+
 // --- Validators ---
 
 export function isListShowsArgs(args: unknown): args is ListShowsArgs {
@@ -254,5 +316,84 @@ export function isCompareEpisodesArgs(
     episode_ids.every((id: unknown) => typeof id === "string") &&
     (start_date === undefined || typeof start_date === "string") &&
     (end_date === undefined || typeof end_date === "string")
+  );
+}
+
+export function isPublishEpisodeArgs(
+  args: unknown
+): args is PublishEpisodeArgs {
+  if (!args || typeof args !== "object") return false;
+  const { episode_id, status } = args as PublishEpisodeArgs;
+  return (
+    typeof episode_id === "string" &&
+    ["published", "scheduled", "draft"].includes(status)
+  );
+}
+
+export function isGetShowArgs(args: unknown): args is GetShowArgs {
+  if (!args || typeof args !== "object") return false;
+  const { show_id } = args as GetShowArgs;
+  return typeof show_id === "string";
+}
+
+export function isUpdateShowArgs(args: unknown): args is UpdateShowArgs {
+  if (!args || typeof args !== "object") return false;
+  const { show_id } = args as UpdateShowArgs;
+  return typeof show_id === "string";
+}
+
+export function isListSubscribersArgs(
+  args: unknown
+): args is ListSubscribersArgs {
+  if (!args || typeof args !== "object") return false;
+  const { show_id } = args as ListSubscribersArgs;
+  return typeof show_id === "string";
+}
+
+export function isGetSubscriberArgs(
+  args: unknown
+): args is GetSubscriberArgs {
+  if (!args || typeof args !== "object") return false;
+  const { subscriber_id } = args as GetSubscriberArgs;
+  return typeof subscriber_id === "string";
+}
+
+export function isCreateSubscriberArgs(
+  args: unknown
+): args is CreateSubscriberArgs {
+  if (!args || typeof args !== "object") return false;
+  const { show_id, email } = args as CreateSubscriberArgs;
+  return typeof show_id === "string" && typeof email === "string";
+}
+
+export function isCreateSubscribersBatchArgs(
+  args: unknown
+): args is CreateSubscribersBatchArgs {
+  if (!args || typeof args !== "object") return false;
+  const { show_id, emails } = args as CreateSubscribersBatchArgs;
+  return (
+    typeof show_id === "string" &&
+    Array.isArray(emails) &&
+    emails.every((e: unknown) => typeof e === "string")
+  );
+}
+
+export function isUpdateSubscriberArgs(
+  args: unknown
+): args is UpdateSubscriberArgs {
+  if (!args || typeof args !== "object") return false;
+  const { subscriber_id, email } = args as UpdateSubscriberArgs;
+  return typeof subscriber_id === "string" && typeof email === "string";
+}
+
+export function isDeleteSubscriberArgs(
+  args: unknown
+): args is DeleteSubscriberArgs {
+  if (!args || typeof args !== "object") return false;
+  const { subscriber_id, show_id, email } = args as DeleteSubscriberArgs;
+  // Either subscriber_id OR (show_id + email) must be provided
+  return (
+    typeof subscriber_id === "string" ||
+    (typeof show_id === "string" && typeof email === "string")
   );
 }

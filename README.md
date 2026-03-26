@@ -380,14 +380,109 @@ const episode = await use_mcp_tool({
 });
 ```
 
-## Not Yet Implemented
+### publish_episode
+Publish, schedule, or unpublish an episode.
 
-The following Transistor API features are not yet implemented:
-- Private Episodes functionality (subscribers management)
-  - GET /v1/subscribers
-  - GET /v1/subscribers/:id
-  - POST /v1/subscribers
-  - POST /v1/subscribers/batch
-  - PATCH /v1/subscribers/:id
-  - DELETE /v1/subscribers
-  - DELETE /v1/subscribers/:id
+```json
+{
+  "episode_id": string,          // Required
+  "status": string,              // Required: "published", "scheduled", or "draft"
+  "published_at": string         // Optional: date/time in the podcast's time zone (required for "scheduled")
+}
+```
+
+### get_show
+Get details of a single show.
+
+```json
+{
+  "show_id": string              // Required
+}
+```
+
+### update_show
+Update a show's metadata.
+
+```json
+{
+  "show_id": string,             // Required
+  "author": string,              // Optional
+  "category": string,            // Optional: primary podcast category
+  "copyright": string,           // Optional
+  "description": string,         // Optional
+  "explicit": boolean,           // Optional
+  "image_url": string,           // Optional: show artwork URL
+  "keywords": string,            // Optional: comma-separated
+  "language": string,            // Optional: e.g. "en"
+  "owner_email": string,         // Optional
+  "secondary_category": string,  // Optional
+  "show_type": string,           // Optional: "episodic" or "serial"
+  "title": string,               // Optional
+  "time_zone": string,           // Optional
+  "website": string              // Optional
+}
+```
+
+### list_subscribers
+List subscribers for a private podcast.
+
+```json
+{
+  "show_id": string,             // Required
+  "page": number,                // Optional
+  "per": number,                 // Optional
+  "query": string                // Optional: search filter
+}
+```
+
+### get_subscriber
+Get details of a single subscriber.
+
+```json
+{
+  "subscriber_id": string        // Required
+}
+```
+
+### create_subscriber
+Add a subscriber to a private podcast.
+
+```json
+{
+  "show_id": string,             // Required
+  "email": string,               // Required
+  "skip_welcome_email": boolean  // Optional (default false)
+}
+```
+
+### create_subscribers_batch
+Add multiple subscribers at once.
+
+```json
+{
+  "show_id": string,             // Required
+  "emails": string[],            // Required: array of email addresses
+  "skip_welcome_email": boolean  // Optional (default false)
+}
+```
+
+### update_subscriber
+Update a subscriber's email address.
+
+```json
+{
+  "subscriber_id": string,       // Required
+  "email": string                // Required: new email address
+}
+```
+
+### delete_subscriber
+Delete a subscriber by ID or by show + email.
+
+```json
+{
+  "subscriber_id": string,       // Optional: delete by subscriber ID
+  "show_id": string,             // Optional: use with email instead of subscriber_id
+  "email": string                // Optional: use with show_id instead of subscriber_id
+}
+```

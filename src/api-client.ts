@@ -11,6 +11,15 @@ import {
   ListWebhooksArgs,
   SubscribeWebhookArgs,
   UnsubscribeWebhookArgs,
+  PublishEpisodeArgs,
+  GetShowArgs,
+  UpdateShowArgs,
+  ListSubscribersArgs,
+  GetSubscriberArgs,
+  CreateSubscriberArgs,
+  CreateSubscribersBatchArgs,
+  UpdateSubscriberArgs,
+  DeleteSubscriberArgs,
 } from "./types.js";
 import { toTransistorDate } from "./date-utils.js";
 
@@ -145,6 +154,82 @@ export class TransistorApiClient {
     }
     const response = await this.api.get(`/v1/episodes/${episode_id}`, {
       params,
+    });
+    return response.data;
+  }
+
+  async publishEpisode(args: PublishEpisodeArgs) {
+    const { episode_id, status, published_at } = args;
+    const episode: Record<string, string> = { status };
+    if (published_at) episode.published_at = published_at;
+    const response = await this.api.patch(
+      `/v1/episodes/${episode_id}/publish`,
+      { episode }
+    );
+    return response.data;
+  }
+
+  async getShow(args: GetShowArgs) {
+    const response = await this.api.get(`/v1/shows/${args.show_id}`);
+    return response.data;
+  }
+
+  async updateShow(args: UpdateShowArgs) {
+    const { show_id, ...showData } = args;
+    const response = await this.api.patch(`/v1/shows/${show_id}`, {
+      show: showData,
+    });
+    return response.data;
+  }
+
+  async listSubscribers(args: ListSubscribersArgs) {
+    const { show_id, page = 1, per = 10, query } = args;
+    const params: Record<string, string | number> = {
+      show_id,
+      "pagination[page]": page,
+      "pagination[per]": per,
+    };
+    if (query) params.query = query;
+    const response = await this.api.get("/v1/subscribers", { params });
+    return response.data;
+  }
+
+  async getSubscriber(args: GetSubscriberArgs) {
+    const response = await this.api.get(
+      `/v1/subscribers/${args.subscriber_id}`
+    );
+    return response.data;
+  }
+
+  async createSubscriber(args: CreateSubscriberArgs) {
+    const response = await this.api.post("/v1/subscribers", args);
+    return response.data;
+  }
+
+  async createSubscribersBatch(args: CreateSubscribersBatchArgs) {
+    const response = await this.api.post("/v1/subscribers/batch", args);
+    return response.data;
+  }
+
+  async updateSubscriber(args: UpdateSubscriberArgs) {
+    const { subscriber_id, email } = args;
+    const response = await this.api.patch(
+      `/v1/subscribers/${subscriber_id}`,
+      { subscriber: { email } }
+    );
+    return response.data;
+  }
+
+  async deleteSubscriber(args: DeleteSubscriberArgs) {
+    if (args.subscriber_id) {
+      const response = await this.api.delete(
+        `/v1/subscribers/${args.subscriber_id}`
+      );
+      return response.data;
+    }
+    // Delete by show_id + email
+    const response = await this.api.delete("/v1/subscribers", {
+      params: { show_id: args.show_id, email: args.email },
     });
     return response.data;
   }

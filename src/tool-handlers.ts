@@ -15,6 +15,15 @@ import {
   isAuthorizeUploadArgs,
   isGetDownloadSummaryArgs,
   isCompareEpisodesArgs,
+  isPublishEpisodeArgs,
+  isGetShowArgs,
+  isUpdateShowArgs,
+  isListSubscribersArgs,
+  isGetSubscriberArgs,
+  isCreateSubscriberArgs,
+  isCreateSubscribersBatchArgs,
+  isUpdateSubscriberArgs,
+  isDeleteSubscriberArgs,
   AuthorizeUploadArgs,
   GetDownloadSummaryArgs,
   CompareEpisodesArgs,
@@ -490,6 +499,247 @@ export class ToolHandlers {
           required: ["episode_ids"],
         },
       },
+      {
+        name: "publish_episode",
+        description:
+          "Publish, schedule, or unpublish an episode. Use this to change an episode's publish status separately from updating its metadata.",
+        inputSchema: {
+          type: "object",
+          properties: {
+            episode_id: {
+              type: "string",
+              description: "ID of the episode",
+            },
+            status: {
+              type: "string",
+              enum: ["published", "scheduled", "draft"],
+              description:
+                "New status: 'published' to publish now, 'scheduled' to schedule for a future date, 'draft' to unpublish",
+            },
+            published_at: {
+              type: "string",
+              description:
+                "Date/time to publish or schedule (in the podcast's time zone). Required when status is 'scheduled'.",
+            },
+          },
+          required: ["episode_id", "status"],
+        },
+      },
+      {
+        name: "get_show",
+        description: "Get details of a single show by ID",
+        inputSchema: {
+          type: "object",
+          properties: {
+            show_id: {
+              type: "string",
+              description: "ID of the show",
+            },
+          },
+          required: ["show_id"],
+        },
+      },
+      {
+        name: "update_show",
+        description: "Update a show's metadata",
+        inputSchema: {
+          type: "object",
+          properties: {
+            show_id: {
+              type: "string",
+              description: "ID of the show to update",
+            },
+            author: {
+              type: "string",
+              description: "Show author name",
+            },
+            category: {
+              type: "string",
+              description: "Primary podcast category",
+            },
+            copyright: {
+              type: "string",
+              description: "Copyright notice",
+            },
+            description: {
+              type: "string",
+              description: "Show description",
+            },
+            explicit: {
+              type: "boolean",
+              description: "Whether the show contains explicit content",
+            },
+            image_url: {
+              type: "string",
+              description: "URL to show artwork",
+            },
+            keywords: {
+              type: "string",
+              description: "Comma-separated keywords",
+            },
+            language: {
+              type: "string",
+              description: "Show language (e.g. 'en')",
+            },
+            owner_email: {
+              type: "string",
+              description: "Owner email address",
+            },
+            secondary_category: {
+              type: "string",
+              description: "Secondary podcast category",
+            },
+            show_type: {
+              type: "string",
+              enum: ["episodic", "serial"],
+              description: "Show type",
+            },
+            title: {
+              type: "string",
+              description: "Show title",
+            },
+            time_zone: {
+              type: "string",
+              description: "Time zone for the show",
+            },
+            website: {
+              type: "string",
+              description: "Show website URL",
+            },
+          },
+          required: ["show_id"],
+        },
+      },
+      {
+        name: "list_subscribers",
+        description:
+          "List subscribers for a private podcast. Returns a paginated list.",
+        inputSchema: {
+          type: "object",
+          properties: {
+            show_id: {
+              type: "string",
+              description: "ID of the private podcast",
+            },
+            page: {
+              type: "number",
+              description: "Page number for pagination",
+              minimum: 1,
+            },
+            per: {
+              type: "number",
+              description: "Items per page (default 10)",
+              minimum: 1,
+            },
+            query: {
+              type: "string",
+              description: "Search query to filter subscribers",
+            },
+          },
+          required: ["show_id"],
+        },
+      },
+      {
+        name: "get_subscriber",
+        description: "Get details of a single subscriber",
+        inputSchema: {
+          type: "object",
+          properties: {
+            subscriber_id: {
+              type: "string",
+              description: "ID of the subscriber",
+            },
+          },
+          required: ["subscriber_id"],
+        },
+      },
+      {
+        name: "create_subscriber",
+        description: "Add a subscriber to a private podcast",
+        inputSchema: {
+          type: "object",
+          properties: {
+            show_id: {
+              type: "string",
+              description: "ID of the private podcast",
+            },
+            email: {
+              type: "string",
+              description: "Subscriber email address",
+            },
+            skip_welcome_email: {
+              type: "boolean",
+              description: "Skip sending welcome email (default false)",
+            },
+          },
+          required: ["show_id", "email"],
+        },
+      },
+      {
+        name: "create_subscribers_batch",
+        description: "Add multiple subscribers to a private podcast at once",
+        inputSchema: {
+          type: "object",
+          properties: {
+            show_id: {
+              type: "string",
+              description: "ID of the private podcast",
+            },
+            emails: {
+              type: "array",
+              items: { type: "string" },
+              description: "Array of subscriber email addresses",
+            },
+            skip_welcome_email: {
+              type: "boolean",
+              description: "Skip sending welcome emails (default false)",
+            },
+          },
+          required: ["show_id", "emails"],
+        },
+      },
+      {
+        name: "update_subscriber",
+        description: "Update a subscriber's email address",
+        inputSchema: {
+          type: "object",
+          properties: {
+            subscriber_id: {
+              type: "string",
+              description: "ID of the subscriber to update",
+            },
+            email: {
+              type: "string",
+              description: "New email address",
+            },
+          },
+          required: ["subscriber_id", "email"],
+        },
+      },
+      {
+        name: "delete_subscriber",
+        description:
+          "Delete a subscriber by ID or by show_id + email. Provide either subscriber_id alone, or both show_id and email.",
+        inputSchema: {
+          type: "object",
+          properties: {
+            subscriber_id: {
+              type: "string",
+              description: "ID of the subscriber to delete",
+            },
+            show_id: {
+              type: "string",
+              description:
+                "ID of the show (use with email instead of subscriber_id)",
+            },
+            email: {
+              type: "string",
+              description:
+                "Email of the subscriber to delete (use with show_id instead of subscriber_id)",
+            },
+          },
+        },
+      },
     ];
   }
 
@@ -692,6 +942,126 @@ export class ToolHandlers {
             content: [
               { type: "text", text: JSON.stringify(comparison, null, 2) },
             ],
+          };
+        }
+
+        case "publish_episode": {
+          if (!isPublishEpisodeArgs(args)) {
+            throw new McpError(
+              ErrorCode.InvalidParams,
+              "Invalid arguments for publish_episode"
+            );
+          }
+          const data = await this.apiClient.publishEpisode(args);
+          const trimmed = trimEpisodeResponse(data);
+          return {
+            content: [
+              { type: "text", text: JSON.stringify(trimmed, null, 2) },
+            ],
+          };
+        }
+
+        case "get_show": {
+          if (!isGetShowArgs(args)) {
+            throw new McpError(
+              ErrorCode.InvalidParams,
+              "Invalid arguments for get_show"
+            );
+          }
+          const data = await this.apiClient.getShow(args);
+          return {
+            content: [{ type: "text", text: JSON.stringify(data, null, 2) }],
+          };
+        }
+
+        case "update_show": {
+          if (!isUpdateShowArgs(args)) {
+            throw new McpError(
+              ErrorCode.InvalidParams,
+              "Invalid arguments for update_show"
+            );
+          }
+          const data = await this.apiClient.updateShow(args);
+          return {
+            content: [{ type: "text", text: JSON.stringify(data, null, 2) }],
+          };
+        }
+
+        case "list_subscribers": {
+          if (!isListSubscribersArgs(args)) {
+            throw new McpError(
+              ErrorCode.InvalidParams,
+              "Invalid arguments for list_subscribers"
+            );
+          }
+          const data = await this.apiClient.listSubscribers(args);
+          return {
+            content: [{ type: "text", text: JSON.stringify(data, null, 2) }],
+          };
+        }
+
+        case "get_subscriber": {
+          if (!isGetSubscriberArgs(args)) {
+            throw new McpError(
+              ErrorCode.InvalidParams,
+              "Invalid arguments for get_subscriber"
+            );
+          }
+          const data = await this.apiClient.getSubscriber(args);
+          return {
+            content: [{ type: "text", text: JSON.stringify(data, null, 2) }],
+          };
+        }
+
+        case "create_subscriber": {
+          if (!isCreateSubscriberArgs(args)) {
+            throw new McpError(
+              ErrorCode.InvalidParams,
+              "Invalid arguments for create_subscriber"
+            );
+          }
+          const data = await this.apiClient.createSubscriber(args);
+          return {
+            content: [{ type: "text", text: JSON.stringify(data, null, 2) }],
+          };
+        }
+
+        case "create_subscribers_batch": {
+          if (!isCreateSubscribersBatchArgs(args)) {
+            throw new McpError(
+              ErrorCode.InvalidParams,
+              "Invalid arguments for create_subscribers_batch"
+            );
+          }
+          const data = await this.apiClient.createSubscribersBatch(args);
+          return {
+            content: [{ type: "text", text: JSON.stringify(data, null, 2) }],
+          };
+        }
+
+        case "update_subscriber": {
+          if (!isUpdateSubscriberArgs(args)) {
+            throw new McpError(
+              ErrorCode.InvalidParams,
+              "Invalid arguments for update_subscriber"
+            );
+          }
+          const data = await this.apiClient.updateSubscriber(args);
+          return {
+            content: [{ type: "text", text: JSON.stringify(data, null, 2) }],
+          };
+        }
+
+        case "delete_subscriber": {
+          if (!isDeleteSubscriberArgs(args)) {
+            throw new McpError(
+              ErrorCode.InvalidParams,
+              "Invalid arguments for delete_subscriber: provide subscriber_id or (show_id + email)"
+            );
+          }
+          const data = await this.apiClient.deleteSubscriber(args);
+          return {
+            content: [{ type: "text", text: JSON.stringify(data, null, 2) }],
           };
         }
 
