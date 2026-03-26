@@ -97,6 +97,19 @@ export interface GetEpisodeArgs {
   fields?: { [key: string]: string[] };
 }
 
+export interface GetDownloadSummaryArgs {
+  show_id: string;
+  episode_id?: string;
+  start_date?: string;
+  end_date?: string;
+}
+
+export interface CompareEpisodesArgs {
+  episode_ids: string[];
+  start_date?: string;
+  end_date?: string;
+}
+
 // --- Validators ---
 
 export function isListShowsArgs(args: unknown): args is ListShowsArgs {
@@ -213,5 +226,33 @@ export function isGetEpisodeArgs(args: unknown): args is GetEpisodeArgs {
     typeof episode_id === "string" &&
     (include === undefined || Array.isArray(include)) &&
     (fields === undefined || typeof fields === "object")
+  );
+}
+
+export function isGetDownloadSummaryArgs(
+  args: unknown
+): args is GetDownloadSummaryArgs {
+  if (!args || typeof args !== "object") return false;
+  const { show_id, episode_id, start_date, end_date } =
+    args as GetDownloadSummaryArgs;
+  return (
+    typeof show_id === "string" &&
+    (episode_id === undefined || typeof episode_id === "string") &&
+    (start_date === undefined || typeof start_date === "string") &&
+    (end_date === undefined || typeof end_date === "string")
+  );
+}
+
+export function isCompareEpisodesArgs(
+  args: unknown
+): args is CompareEpisodesArgs {
+  if (!args || typeof args !== "object") return false;
+  const { episode_ids, start_date, end_date } = args as CompareEpisodesArgs;
+  return (
+    Array.isArray(episode_ids) &&
+    episode_ids.length >= 2 &&
+    episode_ids.every((id: unknown) => typeof id === "string") &&
+    (start_date === undefined || typeof start_date === "string") &&
+    (end_date === undefined || typeof end_date === "string")
   );
 }

@@ -13,8 +13,13 @@ import {
   isUnsubscribeWebhookArgs,
   isGetAuthenticatedUserArgs,
   isAuthorizeUploadArgs,
+  isGetDownloadSummaryArgs,
+  isCompareEpisodesArgs,
   AuthorizeUploadArgs,
+  GetDownloadSummaryArgs,
+  CompareEpisodesArgs,
 } from "./types.js";
+import { toIsoDate } from "./date-utils.js";
 import axios from "axios";
 
 /**
@@ -325,11 +330,11 @@ export class ToolHandlers {
             },
             start_date: {
               type: "string",
-              description: "Start date in dd-mm-yyyy format (optional)",
+              description: "Start date (accepts yyyy-mm-dd or dd-mm-yyyy) (optional)",
             },
             end_date: {
               type: "string",
-              description: "End date in dd-mm-yyyy format (optional)",
+              description: "End date (accepts yyyy-mm-dd or dd-mm-yyyy) (optional)",
             },
           },
           required: ["show_id"],
@@ -373,11 +378,11 @@ export class ToolHandlers {
             },
             start_date: {
               type: "string",
-              description: "Start date in dd-mm-yyyy format (optional)",
+              description: "Start date (accepts yyyy-mm-dd or dd-mm-yyyy) (optional)",
             },
             end_date: {
               type: "string",
-              description: "End date in dd-mm-yyyy format (optional)",
+              description: "End date (accepts yyyy-mm-dd or dd-mm-yyyy) (optional)",
             },
           },
           required: ["show_id"],
@@ -431,6 +436,58 @@ export class ToolHandlers {
             },
           },
           required: ["webhook_id"],
+        },
+      },
+      {
+        name: "get_download_summary",
+        description:
+          "Get a computed download summary for a show or episode. Returns total downloads, daily average, week-over-week trend, and best/worst days — no manual calculation needed.",
+        inputSchema: {
+          type: "object",
+          properties: {
+            show_id: {
+              type: "string",
+              description: "ID of the show",
+            },
+            episode_id: {
+              type: "string",
+              description: "ID of a specific episode (optional, omit for show-level stats)",
+            },
+            start_date: {
+              type: "string",
+              description: "Start date (accepts yyyy-mm-dd or dd-mm-yyyy) (optional)",
+            },
+            end_date: {
+              type: "string",
+              description: "End date (accepts yyyy-mm-dd or dd-mm-yyyy) (optional)",
+            },
+          },
+          required: ["show_id"],
+        },
+      },
+      {
+        name: "compare_episodes",
+        description:
+          "Compare download performance across 2 or more episodes. Returns side-by-side stats: total downloads, daily average, peak day, and days since publish for each episode.",
+        inputSchema: {
+          type: "object",
+          properties: {
+            episode_ids: {
+              type: "array",
+              items: { type: "string" },
+              minItems: 2,
+              description: "Array of episode IDs to compare (minimum 2)",
+            },
+            start_date: {
+              type: "string",
+              description: "Start date (accepts yyyy-mm-dd or dd-mm-yyyy) (optional)",
+            },
+            end_date: {
+              type: "string",
+              description: "End date (accepts yyyy-mm-dd or dd-mm-yyyy) (optional)",
+            },
+          },
+          required: ["episode_ids"],
         },
       },
     ];
@@ -604,6 +661,40 @@ export class ToolHandlers {
           };
         }
 
+        case "get_download_summary": {
+          if (!isGetDownloadSummaryArgs(args)) {
+            throw new McpError(
+              ErrorCode.InvalidParams,
+              "Invalid arguments for get_download_summary"
+            );
+          }
+          const summary = await this.computeDownloadSummary(
+            args as GetDownloadSummaryArgs
+          );
+          return {
+            content: [
+              { type: "text", text: JSON.stringify(summary, null, 2) },
+            ],
+          };
+        }
+
+        case "compare_episodes": {
+          if (!isCompareEpisodesArgs(args)) {
+            throw new McpError(
+              ErrorCode.InvalidParams,
+              "Invalid arguments for compare_episodes (need at least 2 episode_ids)"
+            );
+          }
+          const comparison = await this.computeEpisodeComparison(
+            args as CompareEpisodesArgs
+          );
+          return {
+            content: [
+              { type: "text", text: JSON.stringify(comparison, null, 2) },
+            ],
+          };
+        }
+
         default:
           throw new McpError(
             ErrorCode.MethodNotFound,
@@ -626,5 +717,148 @@ export class ToolHandlers {
       }
       throw error;
     }
+  }
+
+  /**
+   * Extract per-day download entries from a Transistor analytics response.
+   * The API returns { data: { attributes: { downloads: [ { date, downloads } ] } } }
+   */
+  private extractDownloads(
+    analyticsData: any
+  ): { date: string; downloads: number }[] {
+    const downloads =
+      analyticsData?.data?.attributes?.downloads ??
+      analyticsData?.data?.attributes?.episodes;
+    if (!Array.isArray(downloads)) return [];
+    return downloads.map((d: any) => ({
+      date: typeof d.date === "string" ? toIsoDate(d.date) : d.date,
+      downloads: Number(d.downloads ?? 0),
+    }));
+  }
+
+  /**
+   * Compute summary stats from a list of daily download entries.
+   */
+  private summarizeDownloads(days: { date: string; downloads: number }[]) {
+    if (days.length === 0) {
+      return {
+        total_downloads: 0,
+        daily_average: 0,
+        days_in_range: 0,
+        best_day: null,
+        worst_day: null,
+        week_over_week_trend: null,
+      };
+    }
+
+    const total = days.reduce((sum, d) => sum + d.downloads, 0);
+    const avg = total / days.length;
+
+    const sorted = [...days].sort((a, b) => b.downloads - a.downloads);
+    const best = sorted[0];
+    const worst = sorted[sorted.length - 1];
+
+    // Week-over-week: compare last 7 days vs previous 7 days
+    let weekOverWeekTrend: {
+      current_week: number;
+      previous_week: number;
+      change_pct: number;
+    } | null = null;
+
+    if (days.length >= 14) {
+      const lastWeek = days.slice(-7);
+      const prevWeek = days.slice(-14, -7);
+      const lastTotal = lastWeek.reduce((s, d) => s + d.downloads, 0);
+      const prevTotal = prevWeek.reduce((s, d) => s + d.downloads, 0);
+      const changePct =
+        prevTotal === 0 ? 0 : ((lastTotal - prevTotal) / prevTotal) * 100;
+      weekOverWeekTrend = {
+        current_week: lastTotal,
+        previous_week: prevTotal,
+        change_pct: Math.round(changePct * 10) / 10,
+      };
+    }
+
+    return {
+      total_downloads: total,
+      daily_average: Math.round(avg * 10) / 10,
+      days_in_range: days.length,
+      best_day: { date: best.date, downloads: best.downloads },
+      worst_day: { date: worst.date, downloads: worst.downloads },
+      week_over_week_trend: weekOverWeekTrend,
+    };
+  }
+
+  private async computeDownloadSummary(args: GetDownloadSummaryArgs) {
+    const analyticsData = await this.apiClient.getAnalytics({
+      show_id: args.show_id,
+      episode_id: args.episode_id,
+      start_date: args.start_date,
+      end_date: args.end_date,
+    });
+
+    const days = this.extractDownloads(analyticsData);
+    return this.summarizeDownloads(days);
+  }
+
+  private async computeEpisodeComparison(args: CompareEpisodesArgs) {
+    const results = await Promise.all(
+      args.episode_ids.map(async (episode_id) => {
+        // Fetch analytics and episode metadata in parallel
+        const [analyticsData, episodeData] = await Promise.all([
+          this.apiClient
+            .getAnalytics({
+              show_id: "_", // show_id is ignored when episode_id is provided
+              episode_id,
+              start_date: args.start_date,
+              end_date: args.end_date,
+            })
+            .catch(() => null),
+          this.apiClient
+            .getEpisode({ episode_id })
+            .catch(() => null),
+        ]);
+
+        const days = analyticsData
+          ? this.extractDownloads(analyticsData)
+          : [];
+        const total = days.reduce((s, d) => s + d.downloads, 0);
+        const avg = days.length > 0 ? total / days.length : 0;
+        const sorted = [...days].sort((a, b) => b.downloads - a.downloads);
+        const peak = sorted.length > 0 ? sorted[0] : null;
+
+        // Compute days since publish
+        const publishedAt =
+          episodeData?.data?.attributes?.published_at ?? null;
+        let daysSincePublish: number | null = null;
+        if (publishedAt) {
+          const pubDate = new Date(publishedAt);
+          const now = new Date();
+          daysSincePublish = Math.floor(
+            (now.getTime() - pubDate.getTime()) / (1000 * 60 * 60 * 24)
+          );
+        }
+
+        const title =
+          episodeData?.data?.attributes?.title ?? `Episode ${episode_id}`;
+
+        return {
+          episode_id,
+          title,
+          total_downloads: total,
+          daily_average: Math.round(avg * 10) / 10,
+          peak_day: peak
+            ? { date: peak.date, downloads: peak.downloads }
+            : null,
+          days_in_range: days.length,
+          days_since_publish: daysSincePublish,
+        };
+      })
+    );
+
+    // Sort by total downloads descending
+    results.sort((a, b) => b.total_downloads - a.total_downloads);
+
+    return { episodes: results };
   }
 }

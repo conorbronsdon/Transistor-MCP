@@ -12,6 +12,7 @@ import {
   SubscribeWebhookArgs,
   UnsubscribeWebhookArgs,
 } from "./types.js";
+import { toTransistorDate } from "./date-utils.js";
 
 export class TransistorApiClient {
   private api: AxiosInstance;
@@ -91,8 +92,10 @@ export class TransistorApiClient {
       ? `/v1/analytics/episodes/${episode_id}`
       : `/v1/analytics/${show_id}`;
     const params: Record<string, string> = {};
-    if (start_date) params.start_date = start_date;
-    if (end_date) params.end_date = end_date;
+    const convertedStart = toTransistorDate(start_date);
+    const convertedEnd = toTransistorDate(end_date);
+    if (convertedStart) params.start_date = convertedStart;
+    if (convertedEnd) params.end_date = convertedEnd;
     const response = await this.api.get(endpoint, { params });
     return response.data;
   }
@@ -100,8 +103,10 @@ export class TransistorApiClient {
   async getAllEpisodeAnalytics(args: GetAllEpisodeAnalyticsArgs) {
     const { show_id, start_date, end_date } = args;
     const params: Record<string, string> = {};
-    if (start_date) params.start_date = start_date;
-    if (end_date) params.end_date = end_date;
+    const convertedStart = toTransistorDate(start_date);
+    const convertedEnd = toTransistorDate(end_date);
+    if (convertedStart) params.start_date = convertedStart;
+    if (convertedEnd) params.end_date = convertedEnd;
     const response = await this.api.get(`/v1/analytics/${show_id}/episodes`, {
       params,
     });
