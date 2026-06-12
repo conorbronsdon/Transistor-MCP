@@ -517,12 +517,12 @@ Delete a subscriber by ID or by show + email.
 
 Issues and pull requests are welcome. If you hit a Transistor API endpoint this server does not cover yet, or you find a bug, open an issue with the tool name and the request you were trying to make. For changes, fork the repo, run `npm install && npm run build`, and open a PR describing what changed and why.
 
-## License
-
-MIT. This is a fork of [gxjansen/Transistor-MCP](https://github.com/gxjansen/Transistor-MCP); the original copyright by Guido X Jansen is preserved in [LICENSE](LICENSE).
-
 ---
 
 ## Disclaimer
 
 *All views, opinions, and statements expressed on this account are solely my own and are made in my personal capacity. They do not reflect, and should not be construed as reflecting, the views, positions, or policies of Modular. This account is not affiliated with, authorized by, or endorsed by Modular in any way.*
+
+## License
+
+MIT. This is a fork of [gxjansen/Transistor-MCP](https://github.com/gxjansen/Transistor-MCP); the original copyright by Guido X Jansen is preserved in [LICENSE](LICENSE).
