@@ -57,7 +57,10 @@ function trimEpisodeResponse(data: any): any {
 }
 
 export class ToolHandlers {
-  constructor(private apiClient: TransistorApiClient) {}
+  constructor(
+    private apiClient: TransistorApiClient,
+    private hasCredentials: boolean = true
+  ) {}
 
   getToolDefinitions() {
     return [
@@ -744,6 +747,13 @@ export class ToolHandlers {
   }
 
   async handleToolCall(name: string, args: unknown) {
+    if (!this.hasCredentials) {
+      throw new McpError(
+        ErrorCode.InvalidRequest,
+        "TRANSISTOR_API_KEY environment variable is required. " +
+          "Get your API key at https://dashboard.transistor.fm/account, set it, and restart the server."
+      );
+    }
     try {
       switch (name) {
         case "get_authenticated_user": {
