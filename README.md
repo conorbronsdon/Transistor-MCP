@@ -1,7 +1,33 @@
+<div align="center">
+
 # Transistor MCP Server
+
+An MCP server for the [Transistor.fm](https://transistor.fm/) API. Manage podcasts, episodes, analytics, transcripts, and webhooks from your AI agent.
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square)](LICENSE)
+[![Language: TypeScript](https://img.shields.io/badge/TypeScript-3178c6?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![MCP](https://img.shields.io/badge/MCP-Model_Context_Protocol-1f6feb?style=flat-square)](https://modelcontextprotocol.io/)
+[![Podcast](https://img.shields.io/badge/Podcast-Chain_of_Thought-purple?style=flat-square)](https://chainofthought.show)
+[![X](https://img.shields.io/badge/X-@ConorBronsdon-black?style=flat-square&logo=x)](https://x.com/ConorBronsdon)
 [![smithery badge](https://smithery.ai/badge/@gxjansen/Transistor-MCP)](https://smithery.ai/server/@gxjansen/Transistor-MCP)
 
-This MCP server provides tools to interact with the [Transistor.fm](https://transistor.fm/) API, allowing you to manage podcasts, episodes, and view analytics.
+</div>
+
+---
+
+![Demo: get_episode tool call and response](docs/demo.gif)
+
+This MCP server provides tools to interact with the [Transistor.fm](https://transistor.fm/) API, allowing you to manage podcasts, episodes, and view analytics. The data shown in the demo above is sample data, not real account values.
+
+> **Fork notice:** This is a maintained fork of [gxjansen/Transistor-MCP](https://github.com/gxjansen/Transistor-MCP) by [Guido X Jansen](https://github.com/gxjansen), who built the original server. This fork adds full API parity (all documented params, response trimming, search), the `get_download_summary` and `compare_episodes` tools, ISO date handling, and transcript support. The MIT license and original copyright are preserved in [LICENSE](LICENSE).
+
+## About
+
+Built and maintained by [Conor Bronsdon](https://github.com/conorbronsdon) for the [Chain of Thought](https://chainofthought.show) podcast production workflow, where it handles episode creation, transcript uploads, and analytics pulls. Conor hosts Chain of Thought, a show about AI infrastructure and how practitioners actually build with it. More tools for creators live in [ai-tools-for-creators](https://github.com/conorbronsdon/ai-tools-for-creators). Find Conor on X at [@ConorBronsdon](https://x.com/ConorBronsdon).
+
+**Sibling MCP servers:**
+- [substack-mcp](https://github.com/conorbronsdon/substack-mcp): read posts and manage Substack drafts
+- [podcastindex-mcp](https://github.com/conorbronsdon/podcastindex-mcp): search the Podcast Index and track guest appearances
 
 ## Configuration
 
@@ -486,3 +512,17 @@ Delete a subscriber by ID or by show + email.
   "email": string                // Optional: use with show_id instead of subscriber_id
 }
 ```
+
+## Contributing
+
+Issues and pull requests are welcome. If you hit a Transistor API endpoint this server does not cover yet, or you find a bug, open an issue with the tool name and the request you were trying to make. For changes, fork the repo, run `npm install && npm run build`, and open a PR describing what changed and why.
+
+## License
+
+MIT. This is a fork of [gxjansen/Transistor-MCP](https://github.com/gxjansen/Transistor-MCP); the original copyright by Guido X Jansen is preserved in [LICENSE](LICENSE).
+
+---
+
+## Disclaimer
+
+*All views, opinions, and statements expressed on this account are solely my own and are made in my personal capacity. They do not reflect, and should not be construed as reflecting, the views, positions, or policies of Modular. This account is not affiliated with, authorized by, or endorsed by Modular in any way.*
