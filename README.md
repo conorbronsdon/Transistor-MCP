@@ -9,7 +9,6 @@ An MCP server for the [Transistor.fm](https://transistor.fm/) API. Manage podcas
 [![MCP](https://img.shields.io/badge/MCP-Model_Context_Protocol-1f6feb?style=flat-square)](https://modelcontextprotocol.io/)
 [![Podcast](https://img.shields.io/badge/Podcast-Chain_of_Thought-purple?style=flat-square)](https://chainofthought.show)
 [![X](https://img.shields.io/badge/X-@ConorBronsdon-black?style=flat-square&logo=x)](https://x.com/ConorBronsdon)
-[![smithery badge](https://smithery.ai/badge/@gxjansen/Transistor-MCP)](https://smithery.ai/server/@gxjansen/Transistor-MCP)
 
 </div>
 
@@ -32,6 +31,22 @@ Built and maintained by [Conor Bronsdon](https://github.com/conorbronsdon) for t
 ## Configuration
 
 Add the server to your MCP settings configuration file with your Transistor API key:
+
+```json
+{
+  "mcpServers": {
+    "transistor": {
+      "command": "npx",
+      "args": ["-y", "transistor-mcp"],
+      "env": {
+        "TRANSISTOR_API_KEY": "your-api-key-here"
+      }
+    }
+  }
+}
+```
+
+Or run from a local clone (after `npm install && npm run build`):
 
 ```json
 {
