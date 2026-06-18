@@ -20,6 +20,10 @@ This MCP server provides tools to interact with the [Transistor.fm](https://tran
 
 > **Fork notice:** This is a maintained fork of [gxjansen/Transistor-MCP](https://github.com/gxjansen/Transistor-MCP) by [Guido X Jansen](https://github.com/gxjansen), who built the original server. This fork adds full API parity (all documented params, response trimming, search), the `get_download_summary` and `compare_episodes` tools, ISO date handling, and transcript support. The MIT license and original copyright are preserved in [LICENSE](LICENSE).
 
+<a href="https://glama.ai/mcp/servers/conorbronsdon/Transistor-MCP">
+  <img width="380" height="200" src="https://glama.ai/mcp/servers/conorbronsdon/Transistor-MCP/badge" alt="Transistor-MCP MCP server" />
+</a>
+
 ## About
 
 Built and maintained by [Conor Bronsdon](https://github.com/conorbronsdon) for the [Chain of Thought](https://chainofthought.show) podcast production workflow, where it handles episode creation, transcript uploads, and analytics pulls. Conor hosts Chain of Thought, a show about AI infrastructure and how practitioners actually build with it. More tools for creators live in [ai-tools-for-creators](https://github.com/conorbronsdon/ai-tools-for-creators). Find Conor on X at [@ConorBronsdon](https://x.com/ConorBronsdon).
