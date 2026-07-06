@@ -227,7 +227,12 @@ export class TransistorApiClient {
       );
       return response.data;
     }
-    // Delete by show_id + email
+    // Delete by show_id + email — both are required for this branch.
+    if (!args.show_id || !args.email) {
+      throw new Error(
+        "delete_subscriber requires either subscriber_id, or both show_id and email."
+      );
+    }
     const response = await this.api.delete("/v1/subscribers", {
       params: { show_id: args.show_id, email: args.email },
     });

@@ -18,7 +18,7 @@ An MCP server for the [Transistor.fm](https://transistor.fm/) API. Manage podcas
 
 This MCP server provides tools to interact with the [Transistor.fm](https://transistor.fm/) API, allowing you to manage podcasts, episodes, and view analytics. The data shown in the demo above is sample data, not real account values.
 
-> **Fork notice:** This is a maintained fork of [gxjansen/Transistor-MCP](https://github.com/gxjansen/Transistor-MCP) by [Guido X Jansen](https://github.com/gxjansen), who built the original server. This fork adds full API parity (all documented params, response trimming, search), the `get_download_summary` and `compare_episodes` tools, ISO date handling, and transcript support. The MIT license and original copyright are preserved in [LICENSE](LICENSE).
+> **Fork notice:** The original server was built by [Guido X Jansen](https://github.com/gxjansen) ([gxjansen/Transistor-MCP](https://github.com/gxjansen/Transistor-MCP)). The full-API-parity pass (all documented params, response trimming, search), the `get_download_summary` and `compare_episodes` analytics tools, ISO date handling, and transcript support were contributed here and have since been merged upstream. This repository is a packaged, npm-published build (`transistor-mcp`) kept in sync with upstream. The MIT license and original copyright are preserved in [LICENSE](LICENSE).
 
 <a href="https://glama.ai/mcp/servers/conorbronsdon/Transistor-MCP">
   <img width="380" height="200" src="https://glama.ai/mcp/servers/conorbronsdon/Transistor-MCP/badge" alt="Transistor-MCP MCP server" />
