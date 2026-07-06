@@ -38,6 +38,7 @@
     "build": "node --max-old-space-size=4096 ./node_modules/.bin/tsc && node -e \"require('fs').chmodSync('build/index.js', '755')\"",
     "prepare": "npm run build",
     "lint": "tsc --noEmit",
+    "test": "tsx --test tests/*.test.ts",
     "watch": "tsc --watch"
   },
   "dependencies": {
@@ -47,6 +48,7 @@
   },
   "devDependencies": {
     "@types/node": "^20.11.24",
+    "tsx": "^4.23.0",
     "typescript": "^5.3.3"
   },
   "engines": {

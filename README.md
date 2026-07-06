@@ -21,6 +21,13 @@ Add the server to your MCP settings configuration file with your Transistor API 
 }
 ```
 
+Optional environment variables (all have sane defaults):
+
+- `TRANSISTOR_TIMEOUT_MS`: request timeout in milliseconds (default `30000`)
+- `TRANSISTOR_MAX_RETRIES`: retries for rate-limited (429) requests, plus transient 5xx, timeout, and network errors on idempotent reads (GET/HEAD); writes are never retried (default `3`, `0` disables)
+- `TRANSISTOR_RATE_LIMIT_DELAY_MS`: flat wait in milliseconds after a 429, matching Transistor's documented 10-second rate-limit block (default `10000`)
+- `TRANSISTOR_RETRY_DELAY_MS`: base delay in milliseconds for exponential backoff on transient 5xx retries (default `1000`); a `Retry-After` response header takes precedence when present
+
 ## Available Tools
 
 ### get_authenticated_user
@@ -482,3 +489,14 @@ const episode = await use_mcp_tool({
 This server now covers the full documented Transistor API surface, including shows,
 episodes, analytics, download summaries, webhooks, and private-podcast subscriber
 management (`GET/POST/PATCH/DELETE /v1/subscribers`).
+
+## Testing
+
+Tests use Node's built-in test runner (`node:test`), executed through [tsx](https://github.com/privatenumber/tsx) so the TypeScript sources are tested directly without a build step:
+
+```bash
+npm install
+npm test
+```
+
+The suite covers date-format conversion, download-summary math, response trimming, and the rate-limit retry/backoff logic — all without hitting the network.
