@@ -32,6 +32,20 @@ import { toIsoDate } from "./date-utils.js";
 import axios from "axios";
 
 /**
+ * Extract a concise, human-readable message from an unknown thrown value,
+ * preferring the Transistor API's status/message when it is an Axios error.
+ */
+function errorMessage(e: unknown): string {
+  if (axios.isAxiosError(e)) {
+    const status = e.response?.status;
+    const apiMsg =
+      (e.response?.data as { error?: string } | undefined)?.error ?? e.message;
+    return status ? `HTTP ${status}: ${apiMsg}` : apiMsg;
+  }
+  return e instanceof Error ? e.message : String(e);
+}
+
+/**
  * Strip heavy fields from episode responses to reduce token usage.
  * Removes HTML descriptions, embed codes, and formatted variants
  * that are rarely needed by the caller.
@@ -1146,8 +1160,11 @@ export class ToolHandlers {
     } | null = null;
 
     if (days.length >= 14) {
-      const lastWeek = days.slice(-7);
-      const prevWeek = days.slice(-14, -7);
+      // Sort chronologically before slicing — the API does not guarantee
+      // ordering, and ISO yyyy-mm-dd strings sort lexicographically by date.
+      const byDate = [...days].sort((a, b) => a.date.localeCompare(b.date));
+      const lastWeek = byDate.slice(-7);
+      const prevWeek = byDate.slice(-14, -7);
       const lastTotal = lastWeek.reduce((s, d) => s + d.downloads, 0);
       const prevTotal = prevWeek.reduce((s, d) => s + d.downloads, 0);
       const changePct =
@@ -1184,7 +1201,9 @@ export class ToolHandlers {
   private async computeEpisodeComparison(args: CompareEpisodesArgs) {
     const results = await Promise.all(
       args.episode_ids.map(async (episode_id) => {
-        // Fetch analytics and episode metadata in parallel
+        // Fetch analytics and episode metadata in parallel. Capture failures
+        // per-episode so one bad episode does not abort the whole comparison,
+        // but surface the error instead of silently reporting zero downloads.
         const [analyticsData, episodeData] = await Promise.all([
           this.apiClient
             .getAnalytics({
@@ -1193,15 +1212,19 @@ export class ToolHandlers {
               start_date: args.start_date,
               end_date: args.end_date,
             })
-            .catch(() => null),
+            .catch((e: unknown) => ({ __error: errorMessage(e) })),
           this.apiClient
             .getEpisode({ episode_id })
             .catch(() => null),
         ]);
 
-        const days = analyticsData
-          ? this.extractDownloads(analyticsData)
-          : [];
+        const analyticsError =
+          analyticsData && typeof analyticsData === "object" && "__error" in analyticsData
+            ? (analyticsData as { __error: string }).__error
+            : null;
+        const days = analyticsError
+          ? []
+          : this.extractDownloads(analyticsData);
         const total = days.reduce((s, d) => s + d.downloads, 0);
         const avg = days.length > 0 ? total / days.length : 0;
         const sorted = [...days].sort((a, b) => b.downloads - a.downloads);
@@ -1232,6 +1255,7 @@ export class ToolHandlers {
             : null,
           days_in_range: days.length,
           days_since_publish: daysSincePublish,
+          ...(analyticsError ? { error: analyticsError } : {}),
         };
       })
     );

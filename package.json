@@ -1,7 +1,7 @@
 {
   "name": "transistor-mcp",
-  "version": "0.2.0",
-  "description": "MCP server for the Transistor.fm podcast hosting API — manage shows, episodes, analytics, download summaries, transcripts, subscribers, and webhooks.",
+  "version": "0.3.0",
+  "description": "MCP server for the Transistor.fm podcast hosting API \u2014 manage shows, episodes, analytics, download summaries, transcripts, subscribers, and webhooks.",
   "type": "module",
   "mcpName": "io.github.conorbronsdon/transistor-mcp",
   "author": "Guido X Jansen (https://github.com/gxjansen)",
@@ -42,8 +42,9 @@
     "watch": "tsc --watch"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "0.6.0",
-    "axios": "^1.7.9"
+    "@modelcontextprotocol/sdk": "1.25.2",
+    "axios": "^1.13.5",
+    "form-data": "^4.0.4"
   },
   "devDependencies": {
     "@types/node": "^20.11.24",
