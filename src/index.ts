@@ -26,7 +26,7 @@ class TransistorServer {
     this.server = new Server(
       {
         name: "transistor-server",
-        version: "0.1.0",
+        version: "0.4.0",
       },
       {
         capabilities: {

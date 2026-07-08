@@ -30,17 +30,21 @@ import {
 } from "./types.js";
 import { toIsoDate } from "./date-utils.js";
 import axios from "axios";
+import { TransistorError, mapHttpStatusToError, extractErrorDetail } from "./errors.js";
 
 /**
- * Extract a concise, human-readable message from an unknown thrown value,
- * preferring the Transistor API's status/message when it is an Axios error.
+ * Extract a concise, human-readable message from an unknown thrown value.
+ * `TransistorApiClient`'s response interceptor (see api-client.ts) already
+ * maps HTTP failures to typed errors before they reach this call site, so
+ * the common case is just reading `.message`. The `axios.isAxiosError`
+ * branch is a defensive fallback for a raw axios error that somehow
+ * bypasses the interceptor.
  */
 function errorMessage(e: unknown): string {
+  if (e instanceof TransistorError) return e.message;
   if (axios.isAxiosError(e)) {
     const status = e.response?.status;
-    const apiMsg =
-      (e.response?.data as { error?: string } | undefined)?.error ?? e.message;
-    return status ? `HTTP ${status}: ${apiMsg}` : apiMsg;
+    return mapHttpStatusToError(status, extractErrorDetail(e.response?.data, e.message)).message;
   }
   return e instanceof Error ? e.message : String(e);
 }
@@ -1096,6 +1100,19 @@ export class ToolHandlers {
           );
       }
     } catch (error) {
+      if (error instanceof McpError) throw error;
+      // Typed errors (see ./errors.ts) are thrown by TransistorApiClient's
+      // response interceptor with a fully-formatted, status-specific message
+      // already baked in.
+      if (error instanceof TransistorError) {
+        return {
+          content: [{ type: "text", text: error.message }],
+          isError: true,
+        };
+      }
+      // Fallback for a raw axios error that reaches this layer without
+      // going through TransistorApiClient's interceptor (kept for backward
+      // compatibility with the original isError response shape).
       if (axios.isAxiosError(error)) {
         return {
           content: [
