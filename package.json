@@ -49,6 +49,7 @@
   },
   "devDependencies": {
     "@types/node": "^20.11.24",
+    "nock": "^14.0.16",
     "typescript": "^5.3.3",
     "vitest": "^4.1.10"
   },
