@@ -1,4 +1,5 @@
 import axios, { AxiosInstance } from "axios";
+import { mapHttpStatusToError, extractErrorDetail } from "./errors.js";
 import {
   AuthorizeUploadArgs,
   CreateEpisodeArgs,
@@ -34,6 +35,26 @@ export class TransistorApiClient {
         Accept: "application/json",
       },
     });
+
+    // Centralize HTTP-failure mapping in one place via a response
+    // interceptor rather than a shared request helper. This repo's ~20
+    // endpoint methods each call `this.api.get/post/patch/delete` directly
+    // (unlike podcastindex-mcp, which funnels every call through a private
+    // `get()` helper) — retrofitting a shared helper here would mean
+    // touching every method body. An interceptor achieves the same "typed
+    // errors mapped in exactly one place" goal with a minimal diff.
+    this.api.interceptors.response.use(
+      (res) => res,
+      (error) => {
+        if (axios.isAxiosError(error)) {
+          throw mapHttpStatusToError(
+            error.response?.status,
+            extractErrorDetail(error.response?.data, error.message)
+          );
+        }
+        throw error;
+      }
+    );
   }
 
   async getAuthenticatedUser() {

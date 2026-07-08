@@ -234,6 +234,17 @@ Unsubscribe from a webhook.
 }
 ```
 
+### Typed errors
+
+Tool calls that fail against the Transistor.fm API return a status-specific,
+human-readable message via `isError: true` rather than a generic Axios error.
+Internally, `TransistorApiClient` maps every HTTP failure — authentication
+(401/403), rate limiting (429), validation (400), not found (404), and
+server errors (5xx) — to a typed error class in a single response
+interceptor (see `src/errors.ts`), so the message you see always names the
+failure mode and, for auth errors, points at the `TRANSISTOR_API_KEY`
+environment variable.
+
 ## Important Notes
 
 - API requests are rate-limited to 10 requests per 10 seconds (as prescribed by the (https://developers.transistor.fm/#:~:text=API%20requests%20are%20rate%2Dlimited,to%20use%20the%20API%20again.)[Transistor API reference])
