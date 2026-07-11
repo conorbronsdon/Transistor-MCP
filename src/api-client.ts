@@ -23,18 +23,33 @@ import {
   DeleteSubscriberArgs,
 } from "./types.js";
 import { toTransistorDate } from "./date-utils.js";
+import {
+  applyRetry,
+  resolveResilienceOptions,
+  ResilienceOptions,
+} from "./retry.js";
 
 export class TransistorApiClient {
   private api: AxiosInstance;
 
-  constructor(apiKey: string) {
+  constructor(apiKey: string, options?: ResilienceOptions) {
+    // Timeout and retry behavior are configurable via env vars
+    // (TRANSISTOR_TIMEOUT_MS, TRANSISTOR_MAX_RETRIES, TRANSISTOR_RETRY_DELAY_MS,
+    // TRANSISTOR_RATE_LIMIT_DELAY_MS); see retry.ts. Tests can pass options directly.
+    const resilience = options ?? resolveResilienceOptions();
     this.api = axios.create({
       baseURL: "https://api.transistor.fm",
+      timeout: resilience.timeoutMs,
       headers: {
         "x-api-key": apiKey,
         Accept: "application/json",
       },
     });
+
+    // Retry 429s (and transient 5xx on reads) with backoff — see retry.ts.
+    // Registered before the error-mapping interceptor so retry sees the raw
+    // axios error (429 detection); mapping runs only once retries are exhausted.
+    applyRetry(this.api, resilience);
 
     // Centralize HTTP-failure mapping in one place via a response
     // interceptor rather than a shared request helper. This repo's ~20

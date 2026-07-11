@@ -25,6 +25,16 @@ import {
  * process; axios still runs its full request/response/interceptor pipeline
  * against the mocked response.
  */
+// Retry is a separate concern (see retry.test.ts). These mapping tests
+// disable retry so a retryable 429/5xx/network GET maps immediately
+// instead of backing off through real sleeps.
+const NO_RETRY = {
+  timeoutMs: 0,
+  maxRetries: 0,
+  retryDelayMs: 0,
+  rateLimitDelayMs: 0,
+};
+
 describe("TransistorApiClient response interceptor (end-to-end through axios)", () => {
   afterEach(() => nock.cleanAll());
 
@@ -44,7 +54,7 @@ describe("TransistorApiClient response interceptor (end-to-end through axios)", 
     nock("https://api.transistor.fm")
       .get("/v1")
       .reply(429, { errors: [{ detail: "Too many requests" }] });
-    const client = new TransistorApiClient("key");
+    const client = new TransistorApiClient("key", NO_RETRY);
     try {
       await client.getAuthenticatedUser();
       throw new Error("should have thrown");
@@ -85,13 +95,13 @@ describe("TransistorApiClient response interceptor (end-to-end through axios)", 
 
   it("maps a 500 response to ServerError", async () => {
     nock("https://api.transistor.fm").get("/v1").reply(500, "Internal Server Error");
-    const client = new TransistorApiClient("key");
+    const client = new TransistorApiClient("key", NO_RETRY);
     await expect(client.getAuthenticatedUser()).rejects.toBeInstanceOf(ServerError);
   });
 
   it("maps a network failure (no HTTP response at all) to the base TransistorError", async () => {
     nock("https://api.transistor.fm").get("/v1").replyWithError("connect ECONNREFUSED");
-    const client = new TransistorApiClient("key");
+    const client = new TransistorApiClient("key", NO_RETRY);
     try {
       await client.getAuthenticatedUser();
       throw new Error("should have thrown");
