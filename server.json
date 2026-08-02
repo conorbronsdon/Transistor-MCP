@@ -7,12 +7,12 @@
     "url": "https://github.com/conorbronsdon/Transistor-MCP",
     "source": "github"
   },
-  "version": "0.2.0",
+  "version": "0.4.0",
   "packages": [
     {
       "registryType": "npm",
       "identifier": "transistor-mcp",
-      "version": "0.2.0",
+      "version": "0.4.0",
       "runtimeHint": "npx",
       "transport": {
         "type": "stdio"
