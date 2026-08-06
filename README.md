@@ -28,9 +28,13 @@ This MCP server provides tools to interact with the [Transistor.fm](https://tran
 
 Built and maintained by [Conor Bronsdon](https://github.com/conorbronsdon) for the [Chain of Thought](https://chainofthought.show) podcast production workflow, where it handles episode creation, transcript uploads, and analytics pulls. Conor hosts Chain of Thought, a show about AI infrastructure and how practitioners actually build with it. More tools for creators live in [ai-tools-for-creators](https://github.com/conorbronsdon/ai-tools-for-creators). Find Conor on X at [@ConorBronsdon](https://x.com/ConorBronsdon).
 
-**Sibling MCP servers:**
+**Companion tools:**
 - [substack-mcp](https://github.com/conorbronsdon/substack-mcp): read posts and manage Substack drafts
 - [podcastindex-mcp](https://github.com/conorbronsdon/podcastindex-mcp): search the Podcast Index and track guest appearances
+- [op3-mcp](https://github.com/conorbronsdon/op3-mcp): report downloads, listener geography, and apps from OP3
+- [apple-podcasts-mcp](https://github.com/conorbronsdon/apple-podcasts-mcp): pull plays, followers, and per-episode listening from Apple Podcasts Connect
+- [gsc-mcp](https://github.com/conorbronsdon/gsc-mcp): query search performance, keywords, and sitemaps in Google Search Console
+- [podcast-benchmark](https://github.com/conorbronsdon/podcast-benchmark): benchmark a show against its peers using only public data
 
 ## Configuration
 
