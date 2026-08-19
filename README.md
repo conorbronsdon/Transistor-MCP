@@ -14,11 +14,16 @@ An MCP server for the [Transistor.fm](https://transistor.fm/) API. Manage podcas
 
 ---
 
+> [!IMPORTANT]
+> **Transistor now ships an official MCP server: [mcp.transistor.fm](https://mcp.transistor.fm).** It's remote (no install), authenticates with OAuth instead of an API key, and is maintained by the Transistor team as the basis for their upcoming API v2. For most people it's the better choice — start there.
+>
+> With the official server available, this community server is **no longer actively maintained**. It still works, and it remains useful if you specifically want a local, API-key-based server (for example, in headless or automated environments where an OAuth browser flow is awkward). Bug-fix PRs are welcome; feature requests are better directed at the official server.
+
 ![Demo: get_episode tool call and response](docs/demo.gif)
 
 This MCP server provides tools to interact with the [Transistor.fm](https://transistor.fm/) API, allowing you to manage podcasts, episodes, and view analytics. The data shown in the demo above is sample data, not real account values.
 
-> **Fork notice:** The original server was built by [Guido X Jansen](https://github.com/gxjansen) ([gxjansen/Transistor-MCP](https://github.com/gxjansen/Transistor-MCP)). The full-API-parity pass (all documented params, response trimming, search), the `get_download_summary` and `compare_episodes` analytics tools, ISO date handling, and transcript support were contributed here and have since been merged upstream. This repository is a packaged, npm-published build (`transistor-mcp`) kept in sync with upstream. The MIT license and original copyright are preserved in [LICENSE](LICENSE).
+> **Fork notice:** The original server was built by [Guido X Jansen](https://github.com/gxjansen) ([gxjansen/Transistor-MCP](https://github.com/gxjansen/Transistor-MCP)). The full-API-parity pass (all documented params, response trimming, search), the `get_download_summary` and `compare_episodes` analytics tools, ISO date handling, and transcript support were contributed here and have since been merged upstream. This repository is a packaged, npm-published build (`transistor-mcp`). The MIT license and original copyright are preserved in [LICENSE](LICENSE).
 
 <a href="https://glama.ai/mcp/servers/conorbronsdon/Transistor-MCP">
   <img width="380" height="200" src="https://glama.ai/mcp/servers/conorbronsdon/Transistor-MCP/badge" alt="Transistor-MCP MCP server" />
@@ -26,7 +31,7 @@ This MCP server provides tools to interact with the [Transistor.fm](https://tran
 
 ## About
 
-Built and maintained by [Conor Bronsdon](https://github.com/conorbronsdon) for the [Chain of Thought](https://chainofthought.show) podcast production workflow, where it handles episode creation, transcript uploads, and analytics pulls. Conor hosts Chain of Thought, a show about AI infrastructure and how practitioners actually build with it. More tools for creators live in [ai-tools-for-creators](https://github.com/conorbronsdon/ai-tools-for-creators). Find Conor on X at [@ConorBronsdon](https://x.com/ConorBronsdon).
+Built by [Conor Bronsdon](https://github.com/conorbronsdon) for the [Chain of Thought](https://chainofthought.show) podcast production workflow, where it handled episode creation, transcript uploads, and analytics pulls before the official server shipped. Conor hosts Chain of Thought, a show about AI infrastructure and how practitioners actually build with it. More tools for creators live in [ai-tools-for-creators](https://github.com/conorbronsdon/ai-tools-for-creators). Find Conor on X at [@ConorBronsdon](https://x.com/ConorBronsdon).
 
 **Companion tools:**
 - [substack-mcp](https://github.com/conorbronsdon/substack-mcp): read posts and manage Substack drafts
@@ -38,7 +43,15 @@ Built and maintained by [Conor Bronsdon](https://github.com/conorbronsdon) for t
 
 ## Configuration
 
-Add the server to your MCP settings configuration file with your Transistor API key:
+**Prefer the official server?** No install needed. Add it to Claude Code with:
+
+```bash
+claude mcp add --transport http transistor https://mcp.transistor.fm
+```
+
+Then run `/mcp` to sign in to Transistor. Other MCP clients that support remote servers with OAuth can point at `https://mcp.transistor.fm` directly.
+
+**To run this community server instead**, add it to your MCP settings configuration file with your Transistor API key:
 
 ```json
 {
@@ -549,7 +562,7 @@ Delete a subscriber by ID or by show + email.
 
 ## Contributing
 
-Issues and pull requests are welcome. If you hit a Transistor API endpoint this server does not cover yet, or you find a bug, open an issue with the tool name and the request you were trying to make. For changes, fork the repo, run `npm install && npm run build`, and open a PR describing what changed and why.
+This server is in maintenance mode now that [the official Transistor MCP](https://mcp.transistor.fm) exists. Bug reports and bug-fix PRs are still welcome: open an issue with the tool name and the request you were trying to make, or fork the repo, run `npm install && npm run build`, and open a PR describing what changed and why. New-feature requests are better directed at the official server, which Transistor is actively developing.
 
 ---
 
